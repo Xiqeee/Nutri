@@ -46,7 +46,8 @@ const JSON_SCHEMA = {
       saturated_fat: 0,
       sodium: 0
     }
-  ]
+  ],
+  source_info: "fonte da informação (ex: Tabela Nutricional Continente, Estimativa IA, etc.)"
 };
 
 const SYSTEM_PROMPT = `És um nutricionista especialista em produtos alimentares do mercado português. 
@@ -60,6 +61,8 @@ REGRAS CRÍTICAS DE PRECISÃO:
 4. ARROZ/MASSA: 100g de arroz cozido tem ~130kcal. 100g de frango grelhado tem ~165kcal.
 5. Responde APENAS com o objeto JSON seguindo esta estrutura:
 ${JSON.stringify(JSON_SCHEMA, null, 2)}
+
+6. FONTE: No campo "source_info", indica se os dados vieram de uma marca específica (ex: "Continente Equilíbrio") ou se é uma estimativa genérica.
 
 Se não tiveres a certeza absoluta, estima com base na gama do produto (ex: "Equilíbrio" = menos açúcar/calorias que o normal).`;
 

@@ -129,7 +129,16 @@ async function renderApp() {
   document.getElementById('btn-logout').onclick = () => api.logout();
   document.getElementById('btn-goals').onclick = () => {
     renderGoalsModal(goalsModalEl, {
-      onSave: () => { hideGoalsModal(goalsModalEl); renderApp(); },
+      goals: state.user.profile.targets,
+      onSave: async (newGoals) => {
+        const updatedProfile = await api.saveProfile({
+          ...state.user.profile,
+          targets: newGoals
+        });
+        state.user.profile = updatedProfile;
+        hideGoalsModal(goalsModalEl);
+        renderApp();
+      },
       onClose: () => hideGoalsModal(goalsModalEl),
     });
     showGoalsModal(goalsModalEl);

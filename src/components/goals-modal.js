@@ -13,8 +13,7 @@ const FIELDS = [
   { key: 'sodium', label: 'Sódio', unit: 'mg', color: 'var(--color-sodium)', primary: false },
 ];
 
-export function renderGoalsModal(container, { onSave, onClose }) {
-  const goals = loadGoals();
+export function renderGoalsModal(container, { goals, onSave, onClose }) {
   const primaryFields = FIELDS.filter(f => f.primary);
   const secondaryFields = FIELDS.filter(f => !f.primary);
 
