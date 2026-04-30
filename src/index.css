@@ -46,7 +46,39 @@
   --slow: 500ms var(--ease);
 }
 
-/* ── Reset ───────────────────────────────────────────── */
+/* Custom Cursor */
+* { cursor: none !important; }
+
+.cursor {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.15s var(--ease), opacity 0.2s;
+}
+
+.cursor-dot {
+  width: 8px; height: 8px;
+  background: #a78bfa;
+  left: 0; top: 0;
+  box-shadow: 0 0 10px #a78bfa, 0 0 20px rgba(167,139,250,0.5);
+}
+
+.cursor-ring {
+  width: 36px; height: 36px;
+  border: 2px solid rgba(167,139,250,0.5);
+  left: 0; top: 0;
+  transition: width 0.3s var(--ease), height 0.3s var(--ease), border-color 0.3s, transform 0.12s var(--ease);
+}
+
+.cursor-ring.hovering {
+  width: 50px; height: 50px;
+  border-color: rgba(167,139,250,0.9);
+  background: rgba(167,139,250,0.08);
+}
+
+/* --- Reset --- */
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
 html { -webkit-font-smoothing:antialiased; }
@@ -211,10 +243,13 @@ body::before {
 .macro-card:hover { transform:translateY(-4px); border-color:rgba(255,255,255,0.15); box-shadow:0 16px 40px rgba(0,0,0,0.4); }
 
 .macro-ring { width:80px; height:80px; margin:0 auto 10px; position:relative; }
-.macro-ring svg { width:80px; height:80px; transform:rotate(-90deg); }
-.ring-bg      { fill:none; stroke:rgba(255,255,255,0.06); stroke-width:6; }
+.macro-ring svg { width:80px; height:80px; display:block; transform:rotate(-90deg); }
+.ring-bg      { fill:none; stroke:rgba(255,255,255,0.07); stroke-width:6; }
 .ring-progress{ fill:none; stroke-width:6; stroke-linecap:round; transition:stroke-dashoffset 1.2s var(--ease); }
-.ring-label   { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:700; }
+.ring-label   { 
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center; 
+  font-size:0.72rem; font-weight:800; letter-spacing:-0.3px;
+}
 
 .macro-values { }
 .macro-value  { font-size:1.5rem; font-weight:800; letter-spacing:-0.5px; }

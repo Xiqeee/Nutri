@@ -7,34 +7,57 @@
   <title>NutriTrack — Food Tracker com AI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥗</text></svg>" />
   <link rel="stylesheet" href="./index.css" />
 </head>
 <body>
-  <div id="app">
-    <header id="app-header" class="app-header">
-      <div class="header-left">
-        <span class="logo-icon">🥗</span>
-        <h1 class="logo-text">NutriTrack</h1>
-      </div>
-      <div class="header-center" id="date-navigation"></div>
-      <div class="header-right">
-        <button id="btn-goals" class="btn-icon" title="Definir metas diárias">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-        </button>
-      </div>
-    </header>
-    <main id="main-content" class="main-content">
-      <section id="nutrition-summary" class="nutrition-summary"></section>
-      <section id="food-input" class="food-input-section"></section>
-      <section id="daily-log" class="daily-log-section"></section>
-    </main>
-    <div id="goals-modal" class="modal-overlay hidden"></div>
-  </div>
+
+  <!-- Custom Cursor -->
+  <div class="cursor cursor-ring" id="cursor-ring"></div>
+  <div class="cursor cursor-dot"  id="cursor-dot"></div>
+
+  <div id="app"></div>
+
   <script type="module" src="./main.js"></script>
+
+  <script>
+    // Custom cursor
+    const dot  = document.getElementById('cursor-dot');
+    const ring = document.getElementById('cursor-ring');
+    let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+
+    document.addEventListener('mousemove', e => {
+      mouseX = e.clientX; mouseY = e.clientY;
+      dot.style.left  = mouseX + 'px';
+      dot.style.top   = mouseY + 'px';
+    });
+
+    // Ring follows with slight delay
+    function animateRing() {
+      ringX += (mouseX - ringX) * 0.12;
+      ringY += (mouseY - ringY) * 0.12;
+      ring.style.left = ringX + 'px';
+      ring.style.top  = ringY + 'px';
+      requestAnimationFrame(animateRing);
+    }
+    animateRing();
+
+    // Expand on hover
+    document.querySelectorAll('a, button, [role="button"], .clickable-item, .meal-btn, .date-nav-btn').forEach(el => {
+      el.addEventListener('mouseenter', () => ring.classList.add('hovering'));
+      el.addEventListener('mouseleave', () => ring.classList.remove('hovering'));
+    });
+
+    // Also listen for dynamically added interactive elements
+    document.addEventListener('mouseover', e => {
+      const tag = e.target.tagName;
+      if (['BUTTON','A','INPUT','TEXTAREA','SELECT'].includes(tag) || e.target.classList.contains('clickable-item')) {
+        ring.classList.add('hovering');
+      } else {
+        ring.classList.remove('hovering');
+      }
+    });
+  </script>
 </body>
 </html>
