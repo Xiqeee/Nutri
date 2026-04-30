@@ -9,9 +9,7 @@ function ringSVG(color, percent, value) {
     <svg viewBox="0 0 80 80">
       <circle class="ring-bg" cx="40" cy="40" r="34"/>
       <circle class="ring-progress" cx="40" cy="40" r="34"
-        stroke="${color}"
-        stroke-dasharray="${CIRCUMFERENCE}"
-        stroke-dashoffset="${offset}"
+        style="stroke:${color};stroke-dasharray:${CIRCUMFERENCE};stroke-dashoffset:${offset}"
       />
     </svg>
     <div class="ring-label" style="color:${color}">${Math.round(percent)}%</div>
@@ -20,17 +18,17 @@ function ringSVG(color, percent, value) {
 
 export function renderNutritionSummary(container, totals, goals) {
   const macros = [
-    { key: 'calories', name: 'Calorias', unit: 'kcal', color: 'var(--color-calories)', cssClass: 'calories' },
-    { key: 'protein', name: 'Proteína', unit: 'g', color: 'var(--color-protein)', cssClass: 'protein' },
-    { key: 'carbs', name: 'Hidratos', unit: 'g', color: 'var(--color-carbs)', cssClass: 'carbs' },
-    { key: 'fat', name: 'Gordura', unit: 'g', color: 'var(--color-fat)', cssClass: 'fat' },
+    { key: 'calories', name: 'Calorias', unit: 'kcal', color: 'var(--cal)', cssClass: 'calories' },
+    { key: 'protein', name: 'Proteína', unit: 'g', color: 'var(--prot)', cssClass: 'protein' },
+    { key: 'carbs', name: 'Hidratos', unit: 'g', color: 'var(--carb)', cssClass: 'carbs' },
+    { key: 'fat', name: 'Gordura', unit: 'g', color: 'var(--fat)', cssClass: 'fat' },
   ];
 
   const secondaryMacros = [
-    { key: 'fiber', name: 'Fibra', unit: 'g', color: 'var(--color-fiber)' },
-    { key: 'sugar', name: 'Açúcar', unit: 'g', color: 'var(--color-sugar)' },
-    { key: 'saturated_fat', name: 'Gord. Sat.', unit: 'g', color: 'var(--color-sat-fat)' },
-    { key: 'sodium', name: 'Sódio', unit: 'mg', color: 'var(--color-sodium)' },
+    { key: 'fiber', name: 'Fibra', unit: 'g', color: 'var(--fiber)' },
+    { key: 'sugar', name: 'Açúcar', unit: 'g', color: 'var(--sugar)' },
+    { key: 'saturated_fat', name: 'Gord. Sat.', unit: 'g', color: 'var(--sat)' },
+    { key: 'sodium', name: 'Sódio', unit: 'mg', color: 'var(--sod)' },
   ];
 
   container.innerHTML = `

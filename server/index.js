@@ -208,15 +208,57 @@ app.delete('/api/meals/:id', authenticate, async (req, res) => {
     .delete()
     .eq('id', id);
 
-  if (error) return res.status(500).json({ error: error.message });
-  res.json({ success: true });
-});
+// --- Groq Rate Limit Protection ---
+// Per-user cooldown map: userId -> timestamp of last request
+const lastRequestTime = new Map();
+const USER_COOLDOWN_MS = 5000; // 5 seconds between requests per user
 
-// --- Analysis Route ---
+/**
+ * Calls Groq with exponential backoff + jitter on 429 errors.
+ * Reads Retry-After header when available (Groq always sends it).
+ */
+async function callGroqWithRetry(payload, attempt = 0) {
+  const MAX_RETRIES = 3;
+  try {
+    return await groq.chat.completions.create(payload);
+  } catch (error) {
+    const is429 = error?.status === 429 || error?.message?.includes('429');
+    if (is429 && attempt < MAX_RETRIES) {
+      // Read Retry-After from Groq headers (in seconds), fallback to exponential backoff
+      const retryAfterSec = error?.headers?.get?.('retry-after');
+      const baseWait = retryAfterSec
+        ? parseInt(retryAfterSec) * 1000
+        : Math.pow(2, attempt) * 1000;
+      const jitter = Math.random() * 500; // up to 500ms jitter
+      const waitMs = baseWait + jitter;
+
+      console.warn(`⚠️  Groq 429 — aguardando ${Math.round(waitMs)}ms antes do retry ${attempt + 1}/${MAX_RETRIES}`);
+      await new Promise(resolve => setTimeout(resolve, waitMs));
+      return callGroqWithRetry(payload, attempt + 1);
+    }
+    throw error;
+  }
+}
+
+
 app.post('/api/analyze', authenticate, async (req, res) => {
+  // Per-user cooldown check
+  const now = Date.now();
+  const lastReq = lastRequestTime.get(req.userId) || 0;
+  const timeSinceLast = now - lastReq;
+
+  if (timeSinceLast < USER_COOLDOWN_MS) {
+    const waitSec = Math.ceil((USER_COOLDOWN_MS - timeSinceLast) / 1000);
+    return res.status(429).json({
+      error: `Aguarda ${waitSec}s antes de analisar outra refeição.`,
+      retryAfter: waitSec
+    });
+  }
+  lastRequestTime.set(req.userId, now);
+
   try {
     const { text } = req.body;
-    const completion = await groq.chat.completions.create({
+    const completion = await callGroqWithRetry({
       messages: [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: text }],
       model: 'llama-3.3-70b-versatile',
       temperature: 0.1,
@@ -226,6 +268,13 @@ app.post('/api/analyze', authenticate, async (req, res) => {
     res.json(JSON.parse(completion.choices[0].message.content));
   } catch (error) {
     console.error('Erro na análise Groq:', error);
+    const is429 = error?.status === 429 || error?.message?.includes('429');
+    if (is429) {
+      return res.status(429).json({
+        error: 'Limite da API da IA atingido (Rate Limit). Aguarda 1 minuto e tenta novamente.',
+        retryAfter: 60
+      });
+    }
     res.status(500).json({ error: 'Erro na análise: ' + error.message });
   }
 });
