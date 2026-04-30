@@ -170,6 +170,7 @@ async function handleSave() {
     meal_type: state.pendingResult.meal_type || state.selectedMeal,
     original_text: state.pendingText,
     items: state.pendingResult.items,
+    source_info: state.pendingResult.source_info || null,
     date: state.currentDate
   };
   await api.saveMeal(mealData);

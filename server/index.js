@@ -182,7 +182,7 @@ app.get('/api/meals/:date', authenticate, async (req, res) => {
 });
 
 app.post('/api/meals', authenticate, async (req, res) => {
-  const { meal_type, items, date, original_text } = req.body;
+  const { meal_type, items, date, original_text, source_info } = req.body;
   
   const { data, error } = await getScopedClient(req.token)
     .from('meals')
@@ -191,7 +191,8 @@ app.post('/api/meals', authenticate, async (req, res) => {
       meal_type,
       items,
       date,
-      original_text
+      original_text,
+      source_info: source_info || null
     }])
     .select()
     .single();

@@ -38,3 +38,6 @@ CREATE POLICY "Utilizadores podem inserir o seu próprio perfil" ON profiles
 
 CREATE POLICY "Utilizadores podem ver as suas próprias refeições" ON meals
   FOR ALL USING (auth.uid() = user_id);
+
+-- 5. Adicionar coluna source_info (correr se a tabela já existir)
+ALTER TABLE meals ADD COLUMN IF NOT EXISTS source_info TEXT;
