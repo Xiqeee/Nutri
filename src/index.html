@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="NutriTrack — Regista o que comes em linguagem natural e acompanha os teus macros com AI." />
+  <title>NutriTrack — Food Tracker com AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥗</text></svg>" />
+  <link rel="stylesheet" href="./index.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="app-header" class="app-header">
+      <div class="header-left">
+        <span class="logo-icon">🥗</span>
+        <h1 class="logo-text">NutriTrack</h1>
+      </div>
+      <div class="header-center" id="date-navigation"></div>
+      <div class="header-right">
+        <button id="btn-goals" class="btn-icon" title="Definir metas diárias">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        </button>
+      </div>
+    </header>
+    <main id="main-content" class="main-content">
+      <section id="nutrition-summary" class="nutrition-summary"></section>
+      <section id="food-input" class="food-input-section"></section>
+      <section id="daily-log" class="daily-log-section"></section>
+    </main>
+    <div id="goals-modal" class="modal-overlay hidden"></div>
+  </div>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
