@@ -160,7 +160,8 @@ async function handleAnalyze(text) {
     });
   } catch (error) {
     setLoading(inputEl, false);
-    showInputError(inputEl, error.message);
+    console.error('Erro na análise:', error);
+    showInputError(inputEl, `A IA não conseguiu responder: ${error.message}. Verifica a tua chave da Groq.`);
   }
 }
 
