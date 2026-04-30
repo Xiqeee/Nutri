@@ -207,6 +207,9 @@ app.delete('/api/meals/:id', authenticate, async (req, res) => {
     .from('meals')
     .delete()
     .eq('id', id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ success: true });
+});
 
 // --- Groq Rate Limit Protection ---
 // Per-user cooldown map: userId -> timestamp of last request
