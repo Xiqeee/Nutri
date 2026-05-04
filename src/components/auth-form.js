@@ -67,14 +67,18 @@ export function renderAuthForm(container, { onLogin, onRegister }) {
     const suggestBtn = container.querySelector('#suggest-pwd');
 
     if (toggleVisBtn) {
-      toggleVisBtn.addEventListener('click', () => {
+      toggleVisBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         showPassword = !showPassword;
         update();
       });
     }
 
     if (suggestBtn) {
-      suggestBtn.addEventListener('click', () => {
+      suggestBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const newPwd = generateSecurePassword();
         form.password.value = newPwd;
         if (form['confirm-password']) form['confirm-password'].value = newPwd;
