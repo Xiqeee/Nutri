@@ -45,7 +45,6 @@ const groq = new Groq({
 });
 
 const JSON_SCHEMA = {
-  version: "v3.0",
   meal_type: "tipo de refeição",
   items: [
     {
@@ -61,18 +60,17 @@ const JSON_SCHEMA = {
       sodium: 0
     }
   ],
-  source_info: "URL do FatSecret.pt",
-  debug_msg: "Mensagem de sistema para debug"
+  source_info: "URL do FatSecret.pt"
 };
 
-const SYSTEM_PROMPT = `És o NUTRICIONISTA V3.0. 
-O campo 'version' deve ser obrigatoriamente 'v3.0'.
-O campo 'debug_msg' deve dizer 'SISTEMA ATUALIZADO'.
+const SYSTEM_PROMPT = `És um nutricionista clínico especialista no mercado português (www.fatsecret.pt).
+O teu objetivo é a precisão total em todas as macros.
 
-### REGRAS DE PRECISÃO:
-1. PROCURA NO FATSECRET.PT: Lindahls Protein Crunchy Granola e Chocolate (Nestlé) TEM 142 KCAL POR 127G.
-2. IGNORA QUALQUER VALOR DE 161 KCAL OU 196 KCAL.
-3. Se o utilizador não disser a quantidade, usa o padrão do FatSecret (127g para este produto).
+### REGRAS DE OURO:
+1. FIDELIDADE TOTAL: Os teus valores devem ser IDÊNTICOS aos do FatSecret.pt para o produto e porção indicados.
+2. CASO MESTRE (Lindahls Protein Crunchy Granola e Chocolate): Este produto no FatSecret tem 142 kcal, 14.1g Proteína, 15.1g Hidratos e 2.2g Gordura por dose (127g). Deves usar estes valores exatos.
+3. DESAMBIGUAÇÃO: Diferencia sempre entre ingredientes isolados e snacks preparados.
+4. DECIMAIS: Usa sempre uma casa decimal para proteína, hidratos e gordura (ex: 14.1g).
 
 Responde APENAS com o objeto JSON:
 ${JSON.stringify(JSON_SCHEMA, null, 2)}`;
