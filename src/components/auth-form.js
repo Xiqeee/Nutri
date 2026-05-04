@@ -1,7 +1,15 @@
-/* auth-form.js — Login and Register UI */
-
 export function renderAuthForm(container, { onLogin, onRegister }) {
   let isLogin = true;
+  let showPassword = false;
+
+  function generateSecurePassword() {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+    let password = "";
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  }
 
   function update() {
     container.innerHTML = `
@@ -18,10 +26,24 @@ export function renderAuthForm(container, { onLogin, onRegister }) {
               <label class="form-label">Email</label>
               <input type="email" id="email" class="form-input" placeholder="exemplo@email.com" required>
             </div>
-            <div class="form-group">
+            
+            <div class="form-group password-group">
               <label class="form-label">Palavra-passe</label>
-              <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+              <div class="input-wrapper">
+                <input type="${showPassword ? 'text' : 'password'}" id="password" class="form-input" placeholder="••••••••" required>
+                <button type="button" id="toggle-pwd-vis" class="btn-icon-small" title="Mostrar/Esconder">
+                  ${showPassword ? '👁️' : '🙈'}
+                </button>
+              </div>
+              ${!isLogin ? `<button type="button" id="suggest-pwd" class="btn-link-small">Sugerir password segura</button>` : ''}
             </div>
+
+            ${!isLogin ? `
+            <div class="form-group">
+              <label class="form-label">Confirmar Palavra-passe</label>
+              <input type="${showPassword ? 'text' : 'password'}" id="confirm-password" class="form-input" placeholder="••••••••" required>
+            </div>
+            ` : ''}
             
             <div id="auth-error" class="auth-error hidden"></div>
 
@@ -39,15 +61,43 @@ export function renderAuthForm(container, { onLogin, onRegister }) {
     `;
 
     const form = container.querySelector('#auth-form');
-    const toggleBtn = container.querySelector('#toggle-auth');
+    const toggleAuthBtn = container.querySelector('#toggle-auth');
     const errorEl = container.querySelector('#auth-error');
+    const toggleVisBtn = container.querySelector('#toggle-pwd-vis');
+    const suggestBtn = container.querySelector('#suggest-pwd');
+
+    if (toggleVisBtn) {
+      toggleVisBtn.addEventListener('click', () => {
+        showPassword = !showPassword;
+        update();
+      });
+    }
+
+    if (suggestBtn) {
+      suggestBtn.addEventListener('click', () => {
+        const newPwd = generateSecurePassword();
+        form.password.value = newPwd;
+        if (form['confirm-password']) form['confirm-password'].value = newPwd;
+        showPassword = true;
+        update();
+      });
+    }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = form.email.value;
       const password = form.password.value;
-      const submitBtn = form.querySelector('.auth-submit');
       
+      if (!isLogin) {
+        const confirmPassword = form['confirm-password'].value;
+        if (password !== confirmPassword) {
+          errorEl.textContent = "As palavras-passe não coincidem.";
+          errorEl.classList.remove('hidden');
+          return;
+        }
+      }
+
+      const submitBtn = form.querySelector('.auth-submit');
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<div class="loading-spinner"></div>';
       errorEl.classList.add('hidden');
@@ -66,7 +116,7 @@ export function renderAuthForm(container, { onLogin, onRegister }) {
       }
     });
 
-    toggleBtn.addEventListener('click', () => {
+    toggleAuthBtn.addEventListener('click', () => {
       isLogin = !isLogin;
       update();
     });

@@ -44,14 +44,32 @@ export function renderDailyLog(container, meals, { onDeleteMeal, onEditMeal }) {
     <div class="glass-card">
       <div class="log-header">
         <div class="log-title">📋 Registo do Dia</div>
-        <div style="font-size:0.8rem;color:var(--text-muted)">${meals.length} refeição(ões)</div>
+        <div style="font-size:0.8rem;color:var(--muted)">${meals.length} refeição(ões)</div>
       </div>
-      ${sortedTypes.map(type => `
+      ${sortedTypes.map(type => {
+        const groupMeals = grouped[type];
+        const groupTotals = groupMeals.reduce((acc, m) => {
+          m.items.forEach(item => {
+            acc.calories += item.calories || 0;
+            acc.protein += item.protein || 0;
+            acc.carbs += item.carbs || 0;
+            acc.fat += item.fat || 0;
+          });
+          return acc;
+        }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
+
+        return `
         <div class="meal-group">
           <div class="meal-group-header">
-            ${MEAL_LABELS[type] || type}
+            <span class="group-label">${MEAL_LABELS[type] || type}</span>
+            <div class="group-macros-summary">
+              <span title="Calorias">${Math.round(groupTotals.calories)} <small>kcal</small></span>
+              <span title="Proteína" style="color:var(--prot)">${Math.round(groupTotals.protein)}g <small>P</small></span>
+              <span title="Hidratos" style="color:var(--carb)">${Math.round(groupTotals.carbs)}g <small>H</small></span>
+              <span title="Gordura" style="color:var(--fat)">${Math.round(groupTotals.fat)}g <small>G</small></span>
+            </div>
           </div>
-          ${grouped[type].map(meal =>
+          ${groupMeals.map(meal =>
             meal.items.map((item, idx) => `
               <div class="log-item-container" data-meal-id="${meal.id}" data-item-idx="${idx}">
                 <div class="log-item clickable-item">
@@ -60,8 +78,8 @@ export function renderDailyLog(container, meals, { onDeleteMeal, onEditMeal }) {
                     <div class="log-item-qty">${item.quantity}</div>
                   </div>
                   <div class="log-item-macros">
-                    <span style="color:var(--color-calories)">${Math.round(item.calories)} kcal</span>
-                    <span style="color:var(--color-protein)">${item.protein.toFixed(1)}g P</span>
+                    <span style="color:var(--cal)">${Math.round(item.calories)} kcal</span>
+                    <span style="color:var(--prot)">${item.protein.toFixed(1)}g P</span>
                   </div>
                   <div class="log-item-actions">
                     ${idx === 0 ? `
@@ -94,7 +112,7 @@ export function renderDailyLog(container, meals, { onDeleteMeal, onEditMeal }) {
             `).join('')
           ).join('')}
         </div>
-      `).join('')}
+      `;}).join('')}
     </div>
   `;
 

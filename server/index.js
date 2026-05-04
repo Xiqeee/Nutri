@@ -54,17 +54,17 @@ const SYSTEM_PROMPT = `És um nutricionista especialista em produtos alimentares
 Analisa a descrição da refeição e devolve os valores nutricionais em formato JSON.
 
 REGRAS CRÍTICAS DE PRECISÃO:
-1. MARCAS PORTUGUESAS: Conheces bem o Continente (Equilíbrio, Power), Pingo Doce (Go Active), Mimosa, etc.
-2. GAMA EQUILÍBRIO (Continente): Esta gama é focada em poucas calorias. 
-   - Exemplo: Iogurte líquido Equilíbrio (160ml) tem ~53 kcal, ~3.7g Proteína, ~9g Hidratos, 0g Gordura. NÃO uses valores standard de 200ml/80kcal.
-3. QUANTIDADES REAIS: Muitos iogurtes líquidos em Portugal são de 160g/160ml, não 200ml. Se o utilizador disser "1 iogurte", verifica a marca.
-4. ARROZ/MASSA: 100g de arroz cozido tem ~130kcal. 100g de frango grelhado tem ~165kcal.
+1. FONTE MESTRA: Deves basear todos os teus cálculos e dados na base de dados do www.fatsecret.pt (Portugal).
+2. MARCAS PORTUGUESAS: Conheces bem o Continente (Equilíbrio, Power), Pingo Doce (Go Active), Mimosa, etc.
+3. GAMA EQUILÍBRIO (Continente): Esta gama é focada em poucas calorias. 
+   - Exemplo: Iogurte líquido Equilíbrio (160ml) tem ~53 kcal, ~3.7g Proteína, ~9g Hidratos, 0g Gordura.
+4. QUANTIDADES REAIS: Verifica se a porção mencionada corresponde ao padrão do mercado PT (ex: iogurtes líquidos de 160g).
 5. Responde APENAS com o objeto JSON seguindo esta estrutura:
 ${JSON.stringify(JSON_SCHEMA, null, 2)}
 
-6. FONTE: No campo "source_info", indica se os dados vieram de uma marca específica (ex: "Continente Equilíbrio") ou se é uma estimativa genérica.
+6. FONTE: No campo "source_info", indica explicitamente o link ou referência do FatSecret ou a marca específica (ex: "FatSecret - Continente Equilíbrio").
 
-Se não tiveres a certeza absoluta, estima com base na gama do produto (ex: "Equilíbrio" = menos açúcar/calorias que o normal).`;
+Se não tiveres a certeza absoluta, estima com base na gama do produto, mas prioriza sempre os valores do FatSecret.pt.`;
 
 // --- Middleware: Auth (Verify Supabase JWT) ---
 const authenticate = async (req, res, next) => {
@@ -287,3 +287,5 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`🚀 NutriTrack Server a correr na porta ${PORT}`));
+
+export default app;
