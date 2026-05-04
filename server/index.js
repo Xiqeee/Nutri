@@ -9,7 +9,10 @@ import { createClient } from '@supabase/supabase-js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-dotenv.config({ path: join(__dirname, '..', '.env') });
+// Only use dotenv in local development
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  dotenv.config({ path: join(__dirname, '..', '.env') });
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -27,10 +30,15 @@ app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);
   next();
 });
-// --- Serve Frontend Static Files ---
-const distPath = join(__dirname, '..', 'dist');
-app.use(express.static(distPath));
-
+// --- Serve Frontend Static Files (Local development only) ---
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  const distPath = join(__dirname, '..', 'dist');
+  app.use(express.static(distPath));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(join(distPath, 'index.html'));
+  });
+}
 // --- Groq API Setup ---
 const groq = new Groq({
   apiKey: process.env.GEMINI_API_KEY?.trim(),
@@ -287,9 +295,7 @@ app.post('/api/analyze', authenticate, async (req, res) => {
   }
 });
 
-app.get('*', (req, res) => {
-  res.sendFile(join(distPath, 'index.html'));
-});
+// Route fallback for local development is already handled above
 
 // Only listen if not in Vercel environment
 if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
