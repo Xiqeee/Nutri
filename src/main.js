@@ -168,7 +168,7 @@ async function handleAnalyze(text) {
 async function handleSave() {
   if (!state.pendingResult) return;
   const mealData = {
-    meal_type: state.pendingResult.meal_type || state.selectedMeal,
+    meal_type: state.selectedMeal, // Prioritize user selection
     original_text: state.pendingText,
     items: state.pendingResult.items,
     source_info: state.pendingResult.source_info || null,

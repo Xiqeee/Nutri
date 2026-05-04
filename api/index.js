@@ -45,7 +45,6 @@ const groq = new Groq({
 });
 
 const JSON_SCHEMA = {
-  meal_type: "tipo de refeição",
   items: [
     {
       name: "nome completo",
