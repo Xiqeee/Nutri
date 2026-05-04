@@ -22,6 +22,11 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 app.use(cors());
 app.use(express.json());
 
+// Request logging for debugging Vercel
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 // --- Serve Frontend Static Files ---
 const distPath = join(__dirname, '..', 'dist');
 app.use(express.static(distPath));
@@ -286,6 +291,9 @@ app.get('*', (req, res) => {
   res.sendFile(join(distPath, 'index.html'));
 });
 
-app.listen(PORT, () => console.log(`🚀 NutriTrack Server a correr na porta ${PORT}`));
+// Only listen if not in Vercel environment
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  app.listen(PORT, () => console.log(`🚀 NutriTrack Server a correr na porta ${PORT}`));
+}
 
 export default app;

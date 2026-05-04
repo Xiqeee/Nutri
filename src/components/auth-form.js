@@ -1,15 +1,5 @@
 export function renderAuthForm(container, { onLogin, onRegister }) {
   let isLogin = true;
-  let showPassword = false;
-
-  function generateSecurePassword() {
-    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
-    let password = "";
-    for (let i = 0; i < 12; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return password;
-  }
 
   function update() {
     container.innerHTML = `
@@ -24,24 +14,24 @@ export function renderAuthForm(container, { onLogin, onRegister }) {
           <form id="auth-form" class="auth-form">
             <div class="form-group">
               <label class="form-label">Email</label>
-              <input type="email" id="email" class="form-input" placeholder="exemplo@email.com" required>
+              <input type="email" name="email" class="form-input" placeholder="exemplo@email.com" required>
             </div>
             
             <div class="form-group password-group">
               <label class="form-label">Palavra-passe</label>
               <div class="input-wrapper">
-                <input type="${showPassword ? 'text' : 'password'}" id="password" class="form-input" placeholder="••••••••" required>
-                <button type="button" id="toggle-pwd-vis" class="btn-icon-small" title="Mostrar/Esconder">
-                  ${showPassword ? '👁️' : '🙈'}
-                </button>
+                <input type="password" name="password" id="main-password" class="form-input" placeholder="••••••••" required>
+                <button type="button" class="btn-icon-small pwd-toggle" title="Mostrar/Esconder">🙈</button>
               </div>
-              ${!isLogin ? `<button type="button" id="suggest-pwd" class="btn-link-small">Sugerir password segura</button>` : ''}
+              ${!isLogin ? `<button type="button" class="btn-link-small suggest-pwd">Sugerir password segura</button>` : ''}
             </div>
 
             ${!isLogin ? `
             <div class="form-group">
               <label class="form-label">Confirmar Palavra-passe</label>
-              <input type="${showPassword ? 'text' : 'password'}" id="confirm-password" class="form-input" placeholder="••••••••" required>
+              <div class="input-wrapper">
+                <input type="password" name="confirmPassword" id="confirm-password" class="form-input" placeholder="••••••••" required>
+              </div>
             </div>
             ` : ''}
             
@@ -63,27 +53,34 @@ export function renderAuthForm(container, { onLogin, onRegister }) {
     const form = container.querySelector('#auth-form');
     const toggleAuthBtn = container.querySelector('#toggle-auth');
     const errorEl = container.querySelector('#auth-error');
-    const toggleVisBtn = container.querySelector('#toggle-pwd-vis');
-    const suggestBtn = container.querySelector('#suggest-pwd');
 
-    if (toggleVisBtn) {
-      toggleVisBtn.addEventListener('click', (e) => {
+    // Password Visibility Logic (Targeted)
+    const toggleBtns = container.querySelectorAll('.pwd-toggle');
+    toggleBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
         e.preventDefault();
-        e.stopPropagation();
-        showPassword = !showPassword;
-        update();
+        const inputs = form.querySelectorAll('input[name="password"], input[name="confirmPassword"]');
+        const isCurrentlyPassword = inputs[0].type === 'password';
+        inputs.forEach(input => input.type = isCurrentlyPassword ? 'text' : 'password');
+        btn.textContent = isCurrentlyPassword ? '👁️' : '🙈';
       });
-    }
+    });
 
+    // Suggest Password Logic
+    const suggestBtn = container.querySelector('.suggest-pwd');
     if (suggestBtn) {
       suggestBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        e.stopPropagation();
-        const newPwd = generateSecurePassword();
+        const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%";
+        const newPwd = Array.from({length: 12}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
         form.password.value = newPwd;
-        if (form['confirm-password']) form['confirm-password'].value = newPwd;
-        showPassword = true;
-        update();
+        if (form.confirmPassword) form.confirmPassword.value = newPwd;
+        
+        // Show passwords
+        const inputs = form.querySelectorAll('input[name="password"], input[name="confirmPassword"]');
+        inputs.forEach(input => input.type = 'text');
+        const toggleBtn = form.querySelector('.pwd-toggle');
+        if (toggleBtn) toggleBtn.textContent = '👁️';
       });
     }
 
@@ -93,7 +90,7 @@ export function renderAuthForm(container, { onLogin, onRegister }) {
       const password = form.password.value;
       
       if (!isLogin) {
-        const confirmPassword = form['confirm-password'].value;
+        const confirmPassword = form.confirmPassword.value;
         if (password !== confirmPassword) {
           errorEl.textContent = "As palavras-passe não coincidem.";
           errorEl.classList.remove('hidden');
@@ -103,6 +100,7 @@ export function renderAuthForm(container, { onLogin, onRegister }) {
 
       const submitBtn = form.querySelector('.auth-submit');
       submitBtn.disabled = true;
+      const originalText = submitBtn.innerHTML;
       submitBtn.innerHTML = '<div class="loading-spinner"></div>';
       errorEl.classList.add('hidden');
 
@@ -113,10 +111,11 @@ export function renderAuthForm(container, { onLogin, onRegister }) {
           await onRegister(email, password);
         }
       } catch (err) {
+        console.error('Auth error:', err);
         errorEl.textContent = err.message;
         errorEl.classList.remove('hidden');
         submitBtn.disabled = false;
-        submitBtn.innerHTML = isLogin ? 'Entrar' : 'Registar';
+        submitBtn.innerHTML = originalText;
       }
     });
 
