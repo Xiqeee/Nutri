@@ -45,11 +45,12 @@ const groq = new Groq({
 });
 
 const JSON_SCHEMA = {
+  version: "v3.0",
   meal_type: "tipo de refeição",
   items: [
     {
-      name: "nome completo do produto",
-      quantity: "porção detetada (ex: 1 dose, 127g, 1 embalagem)",
+      name: "nome completo",
+      quantity: "porção",
       calories: 0,
       protein: 0,
       carbs: 0,
@@ -60,16 +61,18 @@ const JSON_SCHEMA = {
       sodium: 0
     }
   ],
-  source_info: "URL do FatSecret.pt ou Marca"
+  source_info: "URL do FatSecret.pt",
+  debug_msg: "Mensagem de sistema para debug"
 };
 
-const SYSTEM_PROMPT = `És um nutricionista clínico especialista em produtos do mercado português (FatSecret.pt).
+const SYSTEM_PROMPT = `És o NUTRICIONISTA V3.0. 
+O campo 'version' deve ser obrigatoriamente 'v3.0'.
+O campo 'debug_msg' deve dizer 'SISTEMA ATUALIZADO'.
 
-### INSTRUÇÕES DE DISCRIMINAÇÃO:
-1. DISCRIMINAÇÃO DE PRODUTO: Diferencia claramente entre ingredientes (ex: Granola a granel) e produtos preparados (ex: Iogurte Lindahls com Granola). 
-2. PRIORIDADE SNACK: Se o utilizador menciona uma marca (ex: Lindahls, Continente Equilíbrio, Go Active) sem especificar peso, assume a embalagem individual padrão vendida em Portugal (ex: pote de 127g, iogurte de 160ml, barra de 35g).
-3. FIDELIDADE FATSECRET: Os teus valores devem coincidir exatamente com os da entrada principal do www.fatsecret.pt para esse produto.
-4. LÓGICA DE PORÇÃO: Verifica sempre se o valor é "por 100g" ou "por dose". Devolve sempre os valores relativos ao que o utilizador consumiu.
+### REGRAS DE PRECISÃO:
+1. PROCURA NO FATSECRET.PT: Lindahls Protein Crunchy Granola e Chocolate (Nestlé) TEM 142 KCAL POR 127G.
+2. IGNORA QUALQUER VALOR DE 161 KCAL OU 196 KCAL.
+3. Se o utilizador não disser a quantidade, usa o padrão do FatSecret (127g para este produto).
 
 Responde APENAS com o objeto JSON:
 ${JSON.stringify(JSON_SCHEMA, null, 2)}`;
