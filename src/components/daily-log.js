@@ -1,4 +1,4 @@
-/* daily-log.js — Daily food log */
+/* daily-log.js — Daily food log with granular item management */
 
 const MEAL_LABELS = {
   'pequeno-almoco': '🌅 Pequeno-Almoço',
@@ -11,139 +11,128 @@ const MEAL_LABELS = {
 
 const MEAL_ORDER = ['pequeno-almoco', 'almoco', 'lanche', 'jantar', 'snack', 'outro'];
 
-export function renderDailyLog(container, meals, { onDeleteMeal, onEditMeal }) {
+export function renderDailyLog(container, meals, { onDeleteMeal, onDeleteItem, onMoveItem }) {
   if (!meals || meals.length === 0) {
     container.innerHTML = `
       <div class="glass-card">
-        <div class="log-header">
-          <div class="log-title">📋 Registo do Dia</div>
-        </div>
         <div class="empty-state">
-          <div class="empty-state-icon">🍽️</div>
-          <div class="empty-state-text">
-            Ainda não registaste nenhuma refeição hoje.<br>
-            Escreve o que comeste acima para começar!
-          </div>
+          <div class="empty-state-icon">🍱</div>
+          <div class="empty-state-text">Ainda não registaste nenhuma refeição hoje.</div>
         </div>
       </div>
     `;
     return;
   }
 
-  // Group meals by type
-  const grouped = {};
-  for (const meal of meals) {
-    const type = normalizeMealType(meal.meal_type);
-    if (!grouped[type]) grouped[type] = [];
-    grouped[type].push(meal);
-  }
+  // Group meals and calculate totals
+  const grouped = MEAL_ORDER.map(type => {
+    const typeMeals = meals.filter(m => normalizeMealType(m.meal_type) === type);
+    const totals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    
+    typeMeals.forEach(m => {
+      m.items.forEach(item => {
+        totals.calories += item.calories || 0;
+        totals.protein += item.protein || 0;
+        totals.carbs += item.carbs || 0;
+        totals.fat += item.fat || 0;
+      });
+    });
 
-  const sortedTypes = MEAL_ORDER.filter(t => grouped[t]);
+    return { id: type, label: MEAL_LABELS[type], meals: typeMeals, totals };
+  });
 
   container.innerHTML = `
-    <div class="glass-card">
-      <div class="log-header">
-        <div class="log-title">📋 Registo do Dia</div>
-        <div style="font-size:0.8rem;color:var(--muted)">${meals.length} refeição(ões)</div>
-      </div>
-      ${sortedTypes.map(type => {
-        const groupMeals = grouped[type];
-        const groupTotals = groupMeals.reduce((acc, m) => {
-          m.items.forEach(item => {
-            acc.calories += item.calories || 0;
-            acc.protein += item.protein || 0;
-            acc.carbs += item.carbs || 0;
-            acc.fat += item.fat || 0;
-          });
-          return acc;
-        }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
-
-        return `
-        <div class="meal-group">
+    <div class="daily-log">
+      ${grouped.map(group => `
+        <div class="meal-group ${group.meals.length === 0 ? 'empty' : ''}" data-meal-type="${group.id}">
           <div class="meal-group-header">
-            <span class="group-label">${MEAL_LABELS[type] || type}</span>
-            <div class="group-macros-summary">
-              <span title="Calorias">${Math.round(groupTotals.calories)} <small>kcal</small></span>
-              <span title="Proteína" style="color:var(--prot)">${Math.round(groupTotals.protein)}g <small>P</small></span>
-              <span title="Hidratos" style="color:var(--carb)">${Math.round(groupTotals.carbs)}g <small>H</small></span>
-              <span title="Gordura" style="color:var(--fat)">${Math.round(groupTotals.fat)}g <small>G</small></span>
+            <div class="meal-group-title">
+              <span class="meal-group-name">${group.label}</span>
             </div>
+            ${group.totals.calories > 0 ? `
+              <div class="meal-group-macros">
+                <span>${Math.round(group.totals.calories)} <small>kcal</small></span>
+                <span style="color:var(--prot)">${group.totals.protein.toFixed(1)}g <small>P</small></span>
+                <span style="color:var(--carb)">${group.totals.carbs.toFixed(1)}g <small>H</small></span>
+                <span style="color:var(--fat)">${group.totals.fat.toFixed(1)}g <small>G</small></span>
+              </div>
+            ` : ''}
           </div>
-          ${groupMeals.map(meal =>
-            meal.items.map((item, idx) => `
-              <div class="log-item-container" data-meal-id="${meal.id}" data-item-idx="${idx}">
-                <div class="log-item clickable-item">
+          <div class="meal-items-container" id="drop-zone-${group.id}">
+            ${group.meals.map(meal => meal.items.map((item, itemIdx) => `
+              <div class="log-item" draggable="true" data-meal-id="${meal.id}" data-item-idx="${itemIdx}">
+                <div class="log-item-main">
                   <div class="log-item-info">
                     <div class="log-item-name">${item.name}</div>
                     <div class="log-item-qty">${item.quantity}</div>
                   </div>
                   <div class="log-item-macros">
-                    <span style="color:var(--cal)">${Math.round(item.calories)} kcal</span>
-                    <span style="color:var(--prot)">${item.protein.toFixed(1)}g P</span>
-                  </div>
-                  <div class="log-item-actions">
-                    ${idx === 0 ? `
-                      <button class="log-item-edit" data-meal-id="${meal.id}" title="Editar refeição">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2,0 0 0-2 2v14a2 2,0 0 0 2 2h14a2 2,0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                      </button>
-                      <button class="log-item-delete" data-meal-id="${meal.id}" title="Eliminar refeição">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,6 5,6 21,6"/><path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2v2"/></svg>
-                      </button>
-                    ` : ''}
-                  </div>
-                </div>
-                
-                <div class="item-details hidden">
-                  <div class="details-grid">
-                    <div class="detail-pill"><span>Hidratos:</span> <strong>${item.carbs.toFixed(1)}g</strong></div>
-                    <div class="detail-pill"><span>Açúcar:</span> <strong>${(item.sugar || 0).toFixed(1)}g</strong></div>
-                    <div class="detail-pill"><span>Gordura:</span> <strong>${item.fat.toFixed(1)}g</strong></div>
-                    <div class="detail-pill"><span>Saturada:</span> <strong>${(item.saturated_fat || 0).toFixed(1)}g</strong></div>
-                    <div class="detail-pill"><span>Fibra:</span> <strong>${(item.fiber || 0).toFixed(1)}g</strong></div>
-                    <div class="detail-pill"><span>Sódio:</span> <strong>${(item.sodium || 0).toFixed(0)}mg</strong></div>
-                  </div>
-                  ${meal.source_info ? `
-                    <div class="item-source">
-                      <span class="source-icon">🔍</span> Fonte: ${meal.source_info}
+                    <span class="macro-val">${Math.round(item.calories)} <small>kcal</small></span>
+                    <div class="log-item-actions">
+                      ${item.source_info ? `<a href="${item.source_info}" target="_blank" class="action-btn" title="Ver Fonte">🔗</a>` : ''}
+                      <button class="action-btn delete-item-btn" data-meal-id="${meal.id}" data-item-idx="${itemIdx}" title="Remover item">✕</button>
                     </div>
-                  ` : ''}
+                  </div>
                 </div>
               </div>
-            `).join('')
-          ).join('')}
+            `).join('')).join('')}
+            ${group.meals.length === 0 ? '<div class="drop-placeholder">Arrasta algo para aqui</div>' : ''}
+          </div>
         </div>
-      `;}).join('')}
+      `).join('')}
     </div>
   `;
 
-  // Toggle expansion
-  container.querySelectorAll('.clickable-item').forEach(item => {
-    item.addEventListener('click', (e) => {
-      // Don't expand if clicking actions
-      if (e.target.closest('.log-item-actions')) return;
-      
-      const container = item.closest('.log-item-container');
-      const details = container.querySelector('.item-details');
-      details.classList.toggle('hidden');
-      item.classList.toggle('expanded');
+  // --- Handlers ---
+  
+  // Delete individual items
+  container.querySelectorAll('.delete-item-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const { mealId, itemIdx } = btn.dataset;
+      onDeleteItem(mealId, parseInt(itemIdx));
     });
   });
 
-  // Edit buttons
-  container.querySelectorAll('.log-item-edit').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      onEditMeal(btn.dataset.mealId);
+  // --- Drag & Drop ---
+  const logItems = container.querySelectorAll('.log-item');
+  const groups = container.querySelectorAll('.meal-group');
+
+  logItems.forEach(item => {
+    item.addEventListener('dragstart', (e) => {
+      item.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', JSON.stringify({
+        mealId: item.dataset.mealId,
+        itemIdx: parseInt(item.dataset.itemIdx)
+      }));
+    });
+
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
     });
   });
 
-  // Delete buttons
-  container.querySelectorAll('.log-item-delete').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const mealId = btn.dataset.mealId;
-      if (confirm('Tens a certeza que queres eliminar esta refeição?')) {
-        onDeleteMeal(mealId);
+  groups.forEach(group => {
+    group.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      group.classList.add('drag-over');
+    });
+
+    group.addEventListener('dragleave', () => {
+      group.classList.remove('drag-over');
+    });
+
+    group.addEventListener('drop', (e) => {
+      e.preventDefault();
+      group.classList.remove('drag-over');
+      try {
+        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+        const targetType = group.dataset.mealType;
+        if (data && targetType) {
+          onMoveItem(data.mealId, data.itemIdx, targetType);
+        }
+      } catch (err) {
+        console.error('Erro no drop:', err);
       }
     });
   });

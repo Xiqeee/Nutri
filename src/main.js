@@ -122,6 +122,8 @@ async function renderApp() {
 
   renderDailyLog(logEl, meals, {
     onDeleteMeal: handleDeleteMeal,
+    onDeleteItem: handleDeleteItem,
+    onMoveItem: handleMoveItem,
     onEditMeal: handleEditMeal,
   });
 
@@ -188,6 +190,50 @@ function handleDiscard() {
 
 async function handleDeleteMeal(id) {
   await api.deleteMeal(id);
+  renderApp();
+}
+
+async function handleDeleteItem(mealId, itemIdx) {
+  const meals = await api.getMeals(state.currentDate);
+  const meal = meals.find(m => m.id === mealId);
+  if (!meal) return;
+
+  const newItems = [...meal.items];
+  newItems.splice(itemIdx, 1);
+
+  if (newItems.length === 0) {
+    await api.deleteMeal(mealId);
+  } else {
+    await api.updateMeal(mealId, { ...meal, items: newItems });
+  }
+  renderApp();
+}
+
+async function handleMoveItem(mealId, itemIdx, targetType) {
+  const meals = await api.getMeals(state.currentDate);
+  const sourceMeal = meals.find(m => m.id === mealId);
+  if (!sourceMeal) return;
+
+  const itemToMove = sourceMeal.items[itemIdx];
+  const newSourceItems = [...sourceMeal.items];
+  newSourceItems.splice(itemIdx, 1);
+
+  // 1. Remove from source
+  if (newSourceItems.length === 0) {
+    await api.deleteMeal(mealId);
+  } else {
+    await api.updateMeal(mealId, { ...sourceMeal, items: newSourceItems });
+  }
+
+  // 2. Add to target
+  // We'll create a new meal for the target type
+  await api.saveMeal({
+    meal_type: targetType,
+    items: [itemToMove],
+    date: state.currentDate,
+    original_text: `Movido de ${sourceMeal.meal_type}: ${itemToMove.name}`
+  });
+
   renderApp();
 }
 

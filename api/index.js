@@ -56,20 +56,19 @@ const JSON_SCHEMA = {
       fiber: 0,
       sugar: 0,
       saturated_fat: 0,
-      sodium: 0
+      sodium: 0,
+      source_info: "URL DE PESQUISA DO FATSECRET PARA ESTE ITEM"
     }
-  ],
-  source_info: "URL do FatSecret.pt"
+  ]
 };
 
 const SYSTEM_PROMPT = `És um nutricionista clínico especialista no mercado português (www.fatsecret.pt).
-O teu objetivo é a precisão total em todas as macros.
 
 ### REGRAS DE OURO:
-1. FIDELIDADE TOTAL: Os teus valores devem ser IDÊNTICOS aos do FatSecret.pt.
-2. LINKS SEGUROS: No campo "source_info", gera SEMPRE um link de pesquisa para evitar erros 404. 
-   - Formato: https://www.fatsecret.pt/calorias-nutrição/search?q=[NOME+DO+PRODUTO]
-3. CASO MESTRE: Lindahls Protein Crunchy Granola e Chocolate (142 kcal, 14.1g P, 15.1g H, 2.2g G por 127g).
+1. ANÁLISE INDIVIDUAL: Deves analisar cada ingrediente separadamente. 
+2. FONTES INDIVIDUAIS: Para CADA item na lista "items", deves gerar o seu próprio URL de pesquisa no campo "source_info".
+   - Formato: https://www.fatsecret.pt/calorias-nutrição/search?q=[NOME+DO+INGREDIENTE]
+3. CASO MESTRE: Bacalhau cozido, batatas brancas e batata doce deve gerar 3 itens separados, cada um com o seu link de pesquisa específico.
 4. DECIMAIS: Usa sempre uma casa decimal (ex: 14.1g).
 
 Responde APENAS com o objeto JSON:
@@ -218,6 +217,27 @@ app.delete('/api/meals/:id', authenticate, async (req, res) => {
     .eq('id', id);
   if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true });
+});
+
+app.put('/api/meals/:id', authenticate, async (req, res) => {
+  const { id } = req.params;
+  const { meal_type, items, date, original_text, source_info } = req.body;
+  
+  const { data, error } = await getScopedClient(req.token)
+    .from('meals')
+    .update({
+      meal_type,
+      items,
+      date,
+      original_text,
+      source_info
+    })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
 });
 
 // --- Groq Rate Limit Protection ---

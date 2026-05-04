@@ -93,6 +93,17 @@ export const api = {
     }
     return true;
   },
+  
+  async updateMeal(id, meal) {
+    const res = await fetch(`${API_URL}/meals/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(meal)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erro ao atualizar refeição');
+    return data;
+  },
 
   logout() {
     localStorage.removeItem('nutritrack_token');

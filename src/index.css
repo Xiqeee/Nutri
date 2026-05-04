@@ -382,7 +382,115 @@ body::before {
 .empty-state-icon { font-size:3rem; margin-bottom:12px; opacity:0.4; }
 .empty-state-text { color:var(--muted); font-size:0.95rem; line-height:1.7; }
 
-.meal-group { margin-bottom:28px; }
+/* --- Daily Log Granular Items --- */
+.daily-log {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.meal-group {
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.03);
+  padding: var(--space-md);
+  transition: all 0.3s ease;
+  border: 2px border transparent;
+}
+
+.meal-group.drag-over {
+  background: rgba(var(--color-primary-rgb), 0.1);
+  border: 2px dashed var(--color-primary);
+  transform: scale(1.02);
+}
+
+.meal-items-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-height: 20px;
+}
+
+.log-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  cursor: grab;
+  transition: all 0.2s ease;
+  border-left: 3px solid var(--color-primary);
+}
+
+.log-item:active {
+  cursor: grabbing;
+}
+
+.log-item.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.log-item-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.log-item-name {
+  font-weight: 500;
+  color: var(--text-bright);
+}
+
+.log-item-qty {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.log-item-macros {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: 0.85rem;
+}
+
+.log-item-actions {
+  display: flex;
+  gap: var(--space-xs);
+  margin-left: var(--space-sm);
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-bright);
+}
+
+.delete-item-btn:hover {
+  color: #ff4d4d;
+}
+
+.drop-placeholder {
+  text-align: center;
+  padding: var(--space-sm);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-style: italic;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+}
+
 .meal-group-header {
   display:flex; justify-content:space-between; align-items:center;
   font-size:0.85rem; font-weight:800; text-transform:uppercase; letter-spacing:1px;
