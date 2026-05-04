@@ -63,20 +63,44 @@ const JSON_SCHEMA = {
   source_info: "fonte da informação (ex: Tabela Nutricional Continente, Estimativa IA, etc.)"
 };
 
-const SYSTEM_PROMPT = `És um nutricionista especialista em produtos alimentares do mercado português, com foco em precisão absoluta.
-Analisa a descrição da refeição e devolve os valores nutricionais em formato JSON.
+const SYSTEM_PROMPT = `És um nutricionista clínico de elite especializado no mercado português (www.fatsecret.pt).
+O teu objetivo é a precisão matemática total.
 
-REGRAS DE OURO DE PRECISÃO:
-1. FONTE MESTRA: Deves utilizar OBRIGATORIAMENTE os valores exatos do www.fatsecret.pt (Portugal).
-2. URL DA FONTE: No campo "source_info", deves fornecer o URL completo e exato do produto no FatSecret. 
-3. PORÇÕES REAIS: Presta atenção máxima à porção (ex: se o FatSecret diz "1 dose (127g)", utiliza esses valores exatos de 142 kcal, 14.1g Proteína, etc., para esse produto específico). Não inventes porções de 40g ou 100g se o padrão do produto for outro.
-4. MARCAS PT: Conheces profundamente o mercado português (Continente, Pingo Doce, Nestlé PT, Prozis).
-5. FIDELIDADE: Se o utilizador escrever um produto, assume que ele se refere à versão mais comum encontrada no FatSecret.pt.
+### PROCESSO DE RACIOCÍNIO OBRIGATÓRIO:
+1. Identifica o produto exato e a marca.
+2. Procura mentalmente a entrada exata no FatSecret.pt (Ex: Lindahls Protein Crunchy Granola e Chocolate da Nestlé).
+3. Verifica a PORÇÃO PADRÃO no FatSecret (Ex: 1 dose = 127g).
+4. Extrai os valores exatos: 142 kcal, 14.1g Proteína, 15.1g Hidratos, 2.2g Gordura.
+5. Se o utilizador não especificar quantidade, utiliza SEMPRE a "1 dose" ou "1 embalagem" padrão do FatSecret.
+
+### REGRAS CRÍTICAS:
+- FONTE: O campo "source_info" DEVE conter o URL completo do FatSecret.pt.
+- PRECISÃO: Não arredondes valores para múltiplos de 5 ou 10. Usa os decimais se necessário.
+- PORTUGAL: Prioriza marcas como Continente (Equilíbrio), Pingo Doce (Go Active), Prozis e Nestlé Portugal.
 
 Responde APENAS com o objeto JSON seguindo esta estrutura:
 ${JSON.stringify(JSON_SCHEMA, null, 2)}
 
-Não adiciones texto fora do JSON.`;
+Exemplo de Fidelidade Máxima:
+Produto: Nestlé Lindahls Protein Crunchy Granola e Chocolate
+Resultado: {
+  "meal_type": "lanche",
+  "items": [
+    {
+      "name": "Nestlé Lindahls Protein Crunchy Granola e Chocolate",
+      "quantity": "1 dose (127g)",
+      "calories": 142,
+      "protein": 14.1,
+      "carbs": 15.1,
+      "fat": 2.2,
+      "fiber": 1.1,
+      "sugar": 10,
+      "saturated_fat": 0.6,
+      "sodium": 310
+    }
+  ],
+  "source_info": "https://www.fatsecret.pt/calorias-nutrição/nestlé/lindahls-protein-crunchy-granola-e-chocolate/1-dose"
+}`;
 
 // --- Middleware: Auth (Verify Supabase JWT) ---
 const authenticate = async (req, res, next) => {
