@@ -48,8 +48,8 @@ const JSON_SCHEMA = {
   meal_type: "tipo de refeição",
   items: [
     {
-      name: "nome",
-      quantity: "quantidade",
+      name: "nome completo do produto",
+      quantity: "porção detetada (ex: 1 dose, 127g, 1 embalagem)",
       calories: 0,
       protein: 0,
       carbs: 0,
@@ -60,47 +60,19 @@ const JSON_SCHEMA = {
       sodium: 0
     }
   ],
-  source_info: "fonte da informação (ex: Tabela Nutricional Continente, Estimativa IA, etc.)"
+  source_info: "URL do FatSecret.pt ou Marca"
 };
 
-const SYSTEM_PROMPT = `És um nutricionista clínico de elite especializado no mercado português (www.fatsecret.pt).
-O teu objetivo é a precisão matemática total.
+const SYSTEM_PROMPT = `És um nutricionista clínico especialista em produtos do mercado português (FatSecret.pt).
 
-### PROCESSO DE RACIOCÍNIO OBRIGATÓRIO:
-1. Identifica o produto exato e a marca.
-2. Procura mentalmente a entrada exata no FatSecret.pt (Ex: Lindahls Protein Crunchy Granola e Chocolate da Nestlé).
-3. Verifica a PORÇÃO PADRÃO no FatSecret (Ex: 1 dose = 127g).
-4. Extrai os valores exatos: 142 kcal, 14.1g Proteína, 15.1g Hidratos, 2.2g Gordura.
-5. Se o utilizador não especificar quantidade, utiliza SEMPRE a "1 dose" ou "1 embalagem" padrão do FatSecret.
+### INSTRUÇÕES DE DISCRIMINAÇÃO:
+1. DISCRIMINAÇÃO DE PRODUTO: Diferencia claramente entre ingredientes (ex: Granola a granel) e produtos preparados (ex: Iogurte Lindahls com Granola). 
+2. PRIORIDADE SNACK: Se o utilizador menciona uma marca (ex: Lindahls, Continente Equilíbrio, Go Active) sem especificar peso, assume a embalagem individual padrão vendida em Portugal (ex: pote de 127g, iogurte de 160ml, barra de 35g).
+3. FIDELIDADE FATSECRET: Os teus valores devem coincidir exatamente com os da entrada principal do www.fatsecret.pt para esse produto.
+4. LÓGICA DE PORÇÃO: Verifica sempre se o valor é "por 100g" ou "por dose". Devolve sempre os valores relativos ao que o utilizador consumiu.
 
-### REGRAS CRÍTICAS:
-- FONTE: O campo "source_info" DEVE conter o URL completo do FatSecret.pt.
-- PRECISÃO: Não arredondes valores para múltiplos de 5 ou 10. Usa os decimais se necessário.
-- PORTUGAL: Prioriza marcas como Continente (Equilíbrio), Pingo Doce (Go Active), Prozis e Nestlé Portugal.
-
-Responde APENAS com o objeto JSON seguindo esta estrutura:
-${JSON.stringify(JSON_SCHEMA, null, 2)}
-
-Exemplo de Fidelidade Máxima:
-Produto: Nestlé Lindahls Protein Crunchy Granola e Chocolate
-Resultado: {
-  "meal_type": "lanche",
-  "items": [
-    {
-      "name": "Nestlé Lindahls Protein Crunchy Granola e Chocolate",
-      "quantity": "1 dose (127g)",
-      "calories": 142,
-      "protein": 14.1,
-      "carbs": 15.1,
-      "fat": 2.2,
-      "fiber": 1.1,
-      "sugar": 10,
-      "saturated_fat": 0.6,
-      "sodium": 310
-    }
-  ],
-  "source_info": "https://www.fatsecret.pt/calorias-nutrição/nestlé/lindahls-protein-crunchy-granola-e-chocolate/1-dose"
-}`;
+Responde APENAS com o objeto JSON:
+${JSON.stringify(JSON_SCHEMA, null, 2)}`;
 
 // --- Middleware: Auth (Verify Supabase JWT) ---
 const authenticate = async (req, res, next) => {
