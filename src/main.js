@@ -194,47 +194,60 @@ async function handleDeleteMeal(id) {
 }
 
 async function handleDeleteItem(mealId, itemIdx) {
-  const meals = await api.getMeals(state.currentDate);
-  const meal = meals.find(m => m.id === mealId);
-  if (!meal) return;
+  console.log('🗑️ A tentar apagar item:', { mealId, itemIdx });
+  try {
+    const meals = await api.getMeals(state.currentDate);
+    const meal = meals.find(m => m.id === mealId);
+    if (!meal) throw new Error('Refeição não encontrada');
 
-  const newItems = [...meal.items];
-  newItems.splice(itemIdx, 1);
+    const newItems = [...meal.items];
+    newItems.splice(itemIdx, 1);
 
-  if (newItems.length === 0) {
-    await api.deleteMeal(mealId);
-  } else {
-    await api.updateMeal(mealId, { ...meal, items: newItems });
+    if (newItems.length === 0) {
+      await api.deleteMeal(mealId);
+    } else {
+      await api.updateMeal(mealId, { ...meal, items: newItems });
+    }
+    console.log('✅ Item apagado com sucesso');
+    renderApp();
+  } catch (error) {
+    console.error('❌ Erro ao apagar item:', error);
+    alert('Erro ao apagar item: ' + error.message);
   }
-  renderApp();
 }
 
 async function handleMoveItem(mealId, itemIdx, targetType) {
-  const meals = await api.getMeals(state.currentDate);
-  const sourceMeal = meals.find(m => m.id === mealId);
-  if (!sourceMeal) return;
+  console.log('📦 A tentar mover item:', { mealId, itemIdx, targetType });
+  try {
+    const meals = await api.getMeals(state.currentDate);
+    const sourceMeal = meals.find(m => m.id === mealId);
+    if (!sourceMeal) throw new Error('Refeição de origem não encontrada');
 
-  const itemToMove = sourceMeal.items[itemIdx];
-  const newSourceItems = [...sourceMeal.items];
-  newSourceItems.splice(itemIdx, 1);
+    const itemToMove = sourceMeal.items[itemIdx];
+    const newSourceItems = [...sourceMeal.items];
+    newSourceItems.splice(itemIdx, 1);
 
-  // 1. Remove from source
-  if (newSourceItems.length === 0) {
-    await api.deleteMeal(mealId);
-  } else {
-    await api.updateMeal(mealId, { ...sourceMeal, items: newSourceItems });
+    // 1. Remove from source
+    if (newSourceItems.length === 0) {
+      await api.deleteMeal(mealId);
+    } else {
+      await api.updateMeal(mealId, { ...sourceMeal, items: newSourceItems });
+    }
+
+    // 2. Add to target
+    await api.saveMeal({
+      meal_type: targetType,
+      items: [itemToMove],
+      date: state.currentDate,
+      original_text: `Movido para ${targetType}`
+    });
+
+    console.log('✅ Item movido com sucesso');
+    renderApp();
+  } catch (error) {
+    console.error('❌ Erro ao mover item:', error);
+    alert('Erro ao mover item: ' + error.message);
   }
-
-  // 2. Add to target
-  // We'll create a new meal for the target type
-  await api.saveMeal({
-    meal_type: targetType,
-    items: [itemToMove],
-    date: state.currentDate,
-    original_text: `Movido de ${sourceMeal.meal_type}: ${itemToMove.name}`
-  });
-
-  renderApp();
 }
 
 async function handleEditMeal(id) {

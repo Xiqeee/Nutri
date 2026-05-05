@@ -83,16 +83,18 @@ export function renderDailyLog(container, meals, { onDeleteMeal, onDeleteItem, o
     </div>
   `;
 
-  // --- Handlers ---
-  
-  // Delete individual items
-  container.querySelectorAll('.delete-item-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+  // --- Handlers using Delegation ---
+  container.onclick = (e) => {
+    const deleteBtn = e.target.closest('.delete-item-btn');
+    if (deleteBtn) {
+      console.log('🖱️ Clique em Apagar detetado via delegação');
       e.stopPropagation();
-      const { mealId, itemIdx } = btn.dataset;
-      onDeleteItem(mealId, parseInt(itemIdx));
-    });
-  });
+      const { mealId, itemIdx } = deleteBtn.dataset;
+      if (confirm('Remover este ingrediente?')) {
+        onDeleteItem(mealId, parseInt(itemIdx));
+      }
+    }
+  };
 
   // --- Drag & Drop ---
   const logItems = container.querySelectorAll('.log-item');
@@ -100,6 +102,7 @@ export function renderDailyLog(container, meals, { onDeleteMeal, onDeleteItem, o
 
   logItems.forEach(item => {
     item.addEventListener('dragstart', (e) => {
+      console.log('🏃 Drag Start:', item.dataset.mealId);
       item.classList.add('dragging');
       e.dataTransfer.setData('text/plain', JSON.stringify({
         mealId: item.dataset.mealId,
@@ -126,13 +129,16 @@ export function renderDailyLog(container, meals, { onDeleteMeal, onDeleteItem, o
       e.preventDefault();
       group.classList.remove('drag-over');
       try {
-        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+        const dataTransferText = e.dataTransfer.getData('text/plain');
+        console.log('📥 Drop detetado. Dados:', dataTransferText);
+        const data = JSON.parse(dataTransferText);
         const targetType = group.dataset.mealType;
+        
         if (data && targetType) {
           onMoveItem(data.mealId, data.itemIdx, targetType);
         }
       } catch (err) {
-        console.error('Erro no drop:', err);
+        console.error('❌ Erro no drop:', err);
       }
     });
   });
