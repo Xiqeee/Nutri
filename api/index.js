@@ -189,6 +189,18 @@ app.get('/api/meals/:date', authenticate, async (req, res) => {
   res.json(data || []);
 });
 
+app.get('/api/meals/id/:id', authenticate, async (req, res) => {
+  const { id } = req.params;
+  const { data, error } = await getScopedClient(req.token)
+    .from('meals')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
 app.post('/api/meals', authenticate, async (req, res) => {
   const { meal_type, items, date, original_text, source_info } = req.body;
   

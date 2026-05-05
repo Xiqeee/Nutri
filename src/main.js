@@ -196,8 +196,7 @@ async function handleDeleteMeal(id) {
 async function handleDeleteItem(mealId, itemIdx) {
   console.log('🗑️ A tentar apagar item:', { mealId, itemIdx });
   try {
-    const meals = await api.getMeals(state.currentDate);
-    const meal = meals.find(m => m.id === mealId);
+    const meal = await api.getMeal(mealId);
     if (!meal) throw new Error('Refeição não encontrada');
 
     const newItems = [...meal.items];
@@ -219,8 +218,7 @@ async function handleDeleteItem(mealId, itemIdx) {
 async function handleMoveItem(mealId, itemIdx, targetType) {
   console.log('📦 A tentar mover item:', { mealId, itemIdx, targetType });
   try {
-    const meals = await api.getMeals(state.currentDate);
-    const sourceMeal = meals.find(m => m.id === mealId);
+    const sourceMeal = await api.getMeal(mealId);
     if (!sourceMeal) throw new Error('Refeição de origem não encontrada');
 
     const itemToMove = sourceMeal.items[itemIdx];
@@ -238,7 +236,7 @@ async function handleMoveItem(mealId, itemIdx, targetType) {
     await api.saveMeal({
       meal_type: targetType,
       items: [itemToMove],
-      date: state.currentDate,
+      date: sourceMeal.date, // Use the original meal date
       original_text: `Movido para ${targetType}`
     });
 

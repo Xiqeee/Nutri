@@ -71,6 +71,13 @@ export const api = {
     return data;
   },
 
+  async getMeal(id) {
+    const res = await fetch(`${API_URL}/meals/id/${id}`, { headers: getHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erro ao carregar refeição');
+    return data;
+  },
+
   async saveMeal(meal) {
     const res = await fetch(`${API_URL}/meals`, {
       method: 'POST',
